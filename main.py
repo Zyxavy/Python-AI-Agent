@@ -10,8 +10,8 @@ def main():
         load_dotenv();
         api_key = os.environ.get("GEMINI_API_KEY")
     
-    except:
-        printf("Error: env var was not found");
+    except Exception as e:
+        printf(f"Error: {e}");
 
     client = genai.Client(api_key=api_key)
 
