@@ -7,12 +7,6 @@ def get_files_info(working_directory, directory="."):
         working_dir_abs = os.path.abspath(working_directory)
         target_dir = os.path.normpath(os.path.join(working_dir_abs, directory))
 
-        valid_target_dir = os.path.commonpath([working_dir_abs, target_dir]) == working_dir_abs
-    
-        if not valid_target_dir:
-            print(f'Error: "{directory}" is not a directory')
-            return 
-
         if not os.path.exists(target_dir):
             return f'Error: "{target_dir}" does not exist'
         
@@ -27,23 +21,35 @@ def get_files_info(working_directory, directory="."):
     
     
     items = os.listdir(target_dir)
-    output = f"Result for {os.path.basename(target_dir)} directory:"
-
     items.sort()
+
+    dir_name = os.path.basename(target_dir)
+    if dir_name == "":
+        dir_name = os.path.basename(working_directory)
+
+    output = [f"Result for {dir_name} directory:"]
+
     
     for item in items:
         item_path = os.path.join(target_dir, item)
 
         try:
-            file_size = os.path.getsize(item_path)
-            is_dir = os.path.isdir(item_path)
-            string = f"\n- {item}: file_size={file_size}, is_dir={is_dir}"
-            output += string
-        except Exception as e:
-            string = f"\n - {item}: error={str(e)}"
-            output += string
+            if os.path.isfile(item_path):
+                file_size = os.path.getsize(item_path)
+                is_dir = False
+            elif os.path.isdir(item_path):
+                file_size = os.path.getsize(item_path)
+                is_dir = True
+            else:
+                file_size = 0
+                is_dir = False
+                
+            output_lines.append(f"  - {item}: file_size={file_size} bytes, is_dir={is_dir}")
         
-    return output.rstrip()
+        except Exception as e:
+            output_lines.append(f"  - {item}: error={str(e)}")
+        
+    return "\n".join(output_lines)
 
 schema_get_files_info = types.FunctionDeclaration(
     name="get_files_info",
@@ -54,6 +60,7 @@ schema_get_files_info = types.FunctionDeclaration(
             "directory": types.Schema(
                 type=types.Type.STRING,
                 description="Directory path to list files from, relative to the working directory (default is the working directory itself)",
+                default=".",
             ),
         },
     ),
