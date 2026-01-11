@@ -28,7 +28,7 @@ def call_function(function_call, verbose=False):
 
     if function_name not in function_map:
         return types.Content(
-            role="tool",
+            role="function",
             parts=[
                 types.Part.from_function_response(
                     name=function_name,
@@ -47,15 +47,30 @@ def call_function(function_call, verbose=False):
         print(f"Calling function: {function_name}({args})")
     else:
         print(f" - Calling function: {function_name}")
+    
+    try:
 
-    function_result = function_map[function_name](**args)
+        function_result = function_map[function_name](**args)
 
-    return types.Content(
-        role="tool",
-        parts=[
-            types.Part.from_function_response(
-                name=function_name,
-                response={"result": function_result},
-            )
-        ],
-    )
+        if function_result is None:
+            function_result = ""
+
+        return types.Content(
+            role="function",
+            parts=[
+                types.Part.from_function_response(
+                    name=function_name,
+                    response={"result": str(function_result)},
+                )
+            ],
+        )
+    except Exception as e:
+        return types.Content(
+            role="function",
+            parts=[
+                types.Part.from_function_response(
+                    name=function_name,
+                    response={"error": f"Exception: {str(e)}"},
+                )
+            ],
+        )

@@ -12,6 +12,8 @@ from functions.get_file_content import get_file_content
 from functions.run_python_file import run_python_file
 from functions.write_file import write_file
 
+cur_loops = 0
+
 def main():
     try:
         load_dotenv();
@@ -19,6 +21,7 @@ def main():
     
     except Exception as e:
         printf(f"Error: {e}");
+        return
 
     client = genai.Client(api_key=api_key)
 
@@ -29,37 +32,51 @@ def main():
 
     messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
 
-    response = client.models.generate_content(
-    model="gemini-2.5-flash", contents=messages,
-    config=types.GenerateContentConfig(
-        tools=[available_functions],
-        system_instruction=system_prompt))
+    for cur_loops in range(20):
 
-    if args.verbose:
-        print(f"User prompt: {args}")
-        print(f"Prompt tokens: {response.usage_metadata.prompt_token_count} ")
-        print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
-        print(response.text)
+        response = client.models.generate_content(
+        model="gemini-2.5-flash", contents=messages,
+        config=types.GenerateContentConfig(
+            tools=[available_functions],
+            system_instruction=system_prompt))
 
-    else:
-        print(response.text)
+        if response.candidates and response.candidates[0].content:
+            messages.append(response.candidates[0].content)
 
-    if response.function_calls:
-            for function in response.function_calls:
+        if args.verbose:
+            print(f"User prompt: {args}")
+            print(f"Prompt tokens: {response.usage_metadata.prompt_token_count} ")
+            print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
 
-                function_call_result = call_function(function)
+        if response.function_calls:
+                for function in response.function_calls:
 
-                if not function_call_result.parts:
-                    raise Exception("Error: empty .parts")
-                if function_call_result.parts[0].function_response == None:
-                    raise Exception("Error: Should be an object")
-                if function_call_result.parts[0].function_response.response == None:
-                    raise Exception("Error: Invalid response")
-                
-                function_results = [function_call_result.parts[0]]
-                if args.verbose:
-                    print(f"-> {function_call_result.parts[0].function_response.response}")
-           
+                    function_call_result = call_function(function)
+
+                    messages.append(function_call_result)
+
+                    if args.verbose:
+    
+                        try:
+                            if (function_call_result.parts and function_call_result.parts[0].function_response and 
+                                function_call_result.parts[0].function_response.response):
+
+                                result = function_call_result.parts[0].function_response.response
+                                print(f"Function result: {result}")
+
+                        except Exception as e:
+                            print(f"Error displaying function result: {e}")
+
+        else:
+            if response.text:
+                print(response.text)
+            break
+
+    if cur_loops >= 20:
+        printf("Maximum loops reached(20)")
+        return 1
+    
+    return 0
 
 if __name__ == "__main__":
     main()
