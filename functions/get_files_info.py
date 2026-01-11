@@ -44,12 +44,12 @@ def get_files_info(working_directory, directory="."):
                 file_size = 0
                 is_dir = False
                 
-            output_lines.append(f"  - {item}: file_size={file_size} bytes, is_dir={is_dir}")
+            output.append(f"  - {item}: file_size={file_size} bytes, is_dir={is_dir}")
         
         except Exception as e:
-            output_lines.append(f"  - {item}: error={str(e)}")
+            output.append(f"  - {item}: error={str(e)}")
         
-    return "\n".join(output_lines)
+    return "\n".join(output)
 
 schema_get_files_info = types.FunctionDeclaration(
     name="get_files_info",

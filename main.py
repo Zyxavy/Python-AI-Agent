@@ -6,6 +6,7 @@ from google.genai import types
 
 from tools.prompts import system_prompt
 from tools.call_function import available_functions
+from tools.call_function import call_function
 from functions.get_files_info import get_files_info
 from functions.get_file_content import get_file_content
 from functions.run_python_file import run_python_file
@@ -43,11 +44,22 @@ def main():
     else:
         print(response.text)
 
-    
     if response.function_calls:
             for function in response.function_calls:
-                print(f"Calling function: {function.name}({function.args})")
 
+                function_call_result = call_function(function)
+
+                if not function_call_result.parts:
+                    raise Exception("Error: empty .parts")
+                if function_call_result.parts[0].function_response == None:
+                    raise Exception("Error: Should be an object")
+                if function_call_result.parts[0].function_response.response == None:
+                    raise Exception("Error: Invalid response")
+                
+                function_results = [function_call_result.parts[0]]
+                if args.verbose:
+                    print(f"-> {function_call_result.parts[0].function_response.response}")
+           
 
 if __name__ == "__main__":
     main()
