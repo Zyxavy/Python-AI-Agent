@@ -20,7 +20,7 @@ def main():
         api_key = os.environ.get("GEMINI_API_KEY")
     
     except Exception as e:
-        printf(f"Error: {e}");
+        print(f"Error: {e}");
         return
 
     client = genai.Client(api_key=api_key)
@@ -73,7 +73,7 @@ def main():
             break
 
     if cur_loops >= 20:
-        printf("Maximum loops reached(20)")
+        print("Maximum loops reached(20)")
         return 1
     
     return 0

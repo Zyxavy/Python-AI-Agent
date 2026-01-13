@@ -9,13 +9,13 @@ def run_python_file(working_directory, file_path, args=None):
         valid_target_file = os.path.commonpath([working_dir_abs, target_file]) == working_dir_abs
 
         if not valid_target_file:
-            return f'Error: Cannot execute "{file_path}" as it is outside the permitted working directory'
+            return f'Error: Cannot execute "{target_file}" as it is outside the permitted working directory'
 
         if not target_file.endswith(".py"):
-            return f'Error: "{file_path}" is not a Python file'
+            return f'Error: "{target_file}" is not a Python file'
                     
         if not os.path.isfile(target_file):
-            return f'Error: "{file_path}" does not exist or is not a regular file'
+            return f'Error: "{target_file}" does not exist or is not a regular file'
 
 
     except Exception as e:
