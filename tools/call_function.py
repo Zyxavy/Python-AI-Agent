@@ -5,16 +5,21 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Functions
 from functions.get_file_content import schema_get_file_content, get_file_content
 from functions.get_files_info import schema_get_files_info, get_files_info
 from functions.run_python_file import schema_run_python_file, run_python_file
 from functions.write_file import schema_write_file, write_file
 from functions.analyze_python_file import schema_analyze_python_file, analyze_python_file
 
+#APIs
+from functions.APIs.weather_api import schema_get_weather, get_weather
+
 available_functions = types.Tool(
     function_declarations=[schema_get_files_info, schema_get_file_content, 
                            schema_run_python_file, schema_write_file,
-                           schema_analyze_python_file],
+                           schema_analyze_python_file, schema_get_weather],
+
 )
 
 def call_function(function_call, verbose=False):
@@ -25,7 +30,12 @@ def call_function(function_call, verbose=False):
     "get_files_info": get_files_info,
     "write_file": write_file,
     "run_python_file": run_python_file,
-    "analyze_python_file": analyze_python_file
+    "analyze_python_file": analyze_python_file,
+    "get_weather": get_weather
+    }
+
+    api_map = {
+        "get_weather": get_weather
     }
 
     function_name = function_call.name or ""
@@ -40,11 +50,14 @@ def call_function(function_call, verbose=False):
                 )
             ],
         )
+
     
     args = dict(function_call.args) if function_call.args else {}
-    args.update({
-        "working_directory": "./sandbox"
-    })
+
+    if function_name not in api_map:
+        args.update({
+            "working_directory": "./sandbox"
+        })
 
 
     if verbose:
